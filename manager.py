@@ -1,4 +1,5 @@
 import os
+import shutil
 
 KB = 2**10
 MB = 2**20
@@ -54,7 +55,36 @@ while True:
             break
         elif command in ('ls -l', 'ls -lh', 'ls'):
             print(get_files_with_size(command))
+        elif command.startswith('rm'):
+            try:
+                com, f_name = command.split()
+                if os.path.isfile(f_name):
+                    os.remove(f_name)
+                else:
+                    shutil.rmtree(f_name)
+            except ValueError:
+                print('Specify the file or directory')
+            except FileNotFoundError:
+                print('No such file or directory')
+        elif command.startswith('mv'):
+            try:
+                com, old_name, new_name = command.split()
+                if os.path.exists(new_name):
+                    raise FileExistsError
+                shutil.move(old_name, new_name)
+            except ValueError:
+                print('Specify the current name of the file or directory and the new name')
+            except FileExistsError:
+                print('The file or directory already exists')
+        elif command.startswith('mkdir'):
+            try:
+                com, folder_name = command.split()
+                os.mkdir(folder_name)
+            except FileExistsError:
+                print('The directory already exists')
+            except ValueError:
+                print('Specify the name of the directory to be made')
         else:
             print(f'Invalid command {command} {os.getcwd()}')
-    except FileNotFoundError as err:
-        print('Error')
+    except FileNotFoundError:
+        print('No such file or directory')
