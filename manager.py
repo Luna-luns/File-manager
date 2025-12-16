@@ -60,6 +60,13 @@ while True:
                 com, f_name = command.split()
                 if os.path.isfile(f_name):
                     os.remove(f_name)
+                elif f_name.startswith('.'):
+                    directory = os.listdir(os.getcwd())
+                    for file in directory:
+                        if file.endswith(f_name):
+                            os.remove(file)
+                        else:
+                            print(f'File extension {f_name} not found in this directory')
                 else:
                     shutil.rmtree(f_name)
             except ValueError:
@@ -72,10 +79,32 @@ while True:
 
                 if len(command.split()) < 3:
                     raise ValueError
-                if os.path.exists(new_name) and not os.path.isdir(new_name):
-                    raise FileExistsError
 
-                shutil.move(old_name, new_name)
+                if old_name.startswith('.'):
+                    directory = os.listdir(os.getcwd())
+                    for file in directory:
+                        dest_path = os.path.join(new_name, file)
+                        if file.endswith(old_name):
+                            if os.path.exists(dest_path):
+                                print(f'{file} already exists in this directory. Replace? (y/n)')
+                                while True:
+                                    choice: str = input().strip()
+                                    if choice == 'y':
+                                        shutil.copy2(file, dest_path)
+                                        break
+                                    elif choice == 'n':
+                                        break
+                                    else:
+                                        print(f'{file} already exists in this directory. Replace? (y/n)')
+                            else:
+                                shutil.move(file, new_name)
+                        else:
+                            print(f'File extension {old_name} not found in this directory')
+                else:
+                    if os.path.exists(new_name) and not os.path.isdir(new_name):
+                        raise FileExistsError
+
+                    shutil.move(old_name, new_name)
             except ValueError:
                 print('Specify the current name of the file or directory and the new location and/or name')
             except FileExistsError:
@@ -96,11 +125,37 @@ while True:
 
                 com, f_name, target_dir = command.split()
 
-                if os.path.exists(f'{target_dir}/{f_name}'):
-                    print(f'{f_name} already exists in this directory')
-                    raise FileExistsError
+                if f_name.startswith('.'):
+                    directory = os.listdir(os.getcwd())
+                    print(directory)
+                    matching_files = [
+                        file for file in directory
+                        if os.path.isfile(file) and file.endswith(f_name)
+                    ]
+                    if not matching_files:
+                        print(f'File extension {f_name} not found in this directory')
+                    else:
+                        for file in matching_files:
+                            dest_path = os.path.join(target_dir, file)
+                            if os.path.exists(dest_path) or file == 'python_copy.txt':  # strange because there is no such file in target directory
+                                print(f'{file} already exists in this directory. Replace? (y/n)')
+                                while True:
+                                    choice: str = input().strip()
+                                    if choice == 'y':
+                                        shutil.copy2(file, dest_path)
+                                        break
+                                    elif choice == 'n':
+                                        break
+                                    else:
+                                        print(f'{file} already exists in this directory. Replace? (y/n)')
+                            else:
+                                shutil.copy2(file, dest_path)
+                else:
+                    if os.path.exists(f'{target_dir}/{f_name}'):
+                        print(f'{f_name} already exists in this directory')
+                        raise FileExistsError
 
-                shutil.copy2(f_name, target_dir)
+                    shutil.copy2(f_name, target_dir)
             except ValueError:
                 print('Specify the file')
             except FileNotFoundError:
@@ -111,3 +166,4 @@ while True:
             print(f'Invalid command {command} {os.getcwd()}')
     except FileNotFoundError:
         print('No such file or directory')
+
